@@ -187,6 +187,7 @@ write_config() {
         echo "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
         echo "export OTEL_METRICS_EXPORTER=otlp"
         echo "export OTEL_LOGS_EXPORTER=otlp"
+        echo "export OTEL_LOG_USER_PROMPTS=1"
         echo "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc"
         echo "export OTEL_EXPORTER_OTLP_ENDPOINT=\"${OTEL_ENDPOINT}\""
         echo "export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta"
