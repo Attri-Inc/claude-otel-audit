@@ -6,19 +6,19 @@ Track individual developer Claude Code usage across shared Max plans using OpenT
 
 30 developers share 6-7 Max plans. Without per-developer identity, all telemetry looks like the same user. This toolkit adds `developer.name`, `developer.email`, `team.id`, and `max.plan.id` to every metric and log event via `OTEL_RESOURCE_ATTRIBUTES`.
 
-## Quick Start
+## Quick Start (One Command)
 
 ```bash
-# 1. Clone or download
-git clone <repo-url> && cd claude-otel-audit
+curl -sL https://raw.githubusercontent.com/Attri-Inc/claude-otel-audit/main/install.sh | bash
+```
 
-# 2. Run setup (interactive — takes 30 seconds)
-./setup-claude-otel.sh
+That's it. The script will ask for your name, team, and plan number, then configure everything and verify it works.
 
-# 3. Verify everything works
-./verify-claude-otel.sh
+### Alternative: Clone and Run
 
-# 4. Restart any open Claude Code sessions
+```bash
+git clone https://github.com/Attri-Inc/claude-otel-audit.git && cd claude-otel-audit
+./install.sh
 ```
 
 ## What setup-claude-otel.sh Does

@@ -5,7 +5,7 @@ set -euo pipefail
 # Claude Code OTel Setup — Attri.ai (All-in-One)
 #
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/attri-ai/claude-otel-audit/main/install.sh | bash
+#   curl -sL https://raw.githubusercontent.com/Attri-Inc/claude-otel-audit/main/install.sh | bash
 #   — or —
 #   ./install.sh
 #
@@ -386,7 +386,7 @@ print_next_steps() {
     echo "     → Metrics → search 'claude_code' → filter by developer.name"
     echo ""
     echo "  To re-run this setup (e.g., change team or plan):"
-    echo "    curl -sL <script-url> | bash"
+    echo "    curl -sL https://raw.githubusercontent.com/Attri-Inc/claude-otel-audit/main/install.sh | bash"
     echo ""
     echo -e "  ${BOLD}Questions? Ask Sattyam or check #dev-tools on Slack.${NC}"
     echo ""
