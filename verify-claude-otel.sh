@@ -22,24 +22,23 @@ echo ""
 # --- 1. Required env vars ---
 echo "1. Environment Variables"
 
-declare -A expected_vars=(
-    ["CLAUDE_CODE_ENABLE_TELEMETRY"]="1"
-    ["OTEL_METRICS_EXPORTER"]="otlp"
-    ["OTEL_LOGS_EXPORTER"]="otlp"
-    ["OTEL_EXPORTER_OTLP_PROTOCOL"]="grpc"
-)
-
-for var in "${!expected_vars[@]}"; do
-    val="${!var:-}"
-    expected="${expected_vars[$var]}"
+check_var() {
+    local var_name="$1"
+    local expected="$2"
+    local val="${!var_name:-}"
     if [[ -z "$val" ]]; then
-        fail "$var is not set"
+        fail "$var_name is not set"
     elif [[ "$val" != "$expected" ]]; then
-        warn "$var = $val (expected: $expected)"
+        warn "$var_name = $val (expected: $expected)"
     else
-        pass "$var = $val"
+        pass "$var_name = $val"
     fi
-done
+}
+
+check_var "CLAUDE_CODE_ENABLE_TELEMETRY" "1"
+check_var "OTEL_METRICS_EXPORTER" "otlp"
+check_var "OTEL_LOGS_EXPORTER" "otlp"
+check_var "OTEL_EXPORTER_OTLP_PROTOCOL" "grpc"
 
 # Endpoint check (must be set, should not be localhost)
 endpoint="${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
@@ -79,9 +78,14 @@ echo ""
 echo "3. Endpoint Connectivity"
 
 if [[ -n "$endpoint" ]]; then
-    host=$(echo "$endpoint" | sed 's|https\?://||' | cut -d: -f1)
-    port=$(echo "$endpoint" | sed 's|https\?://||' | cut -d: -f2)
-    port="${port:-4317}"
+    # Strip protocol prefix (http:// or https://)
+    hostport="${endpoint#*://}"
+    host="${hostport%%:*}"
+    port="${hostport##*:}"
+    # Default to 4317 if no port found
+    if [[ "$port" == "$host" ]] || [[ -z "$port" ]]; then
+        port="4317"
+    fi
 
     if nc -z -w 3 "$host" "$port" 2>/dev/null; then
         pass "Connected to $host:$port (gRPC)"
@@ -118,7 +122,11 @@ else
 fi
 
 # Check for stale localhost lines outside the managed block
-stale_lines=$(grep -c 'OTEL_EXPORTER_OTLP_ENDPOINT.*localhost' "$profile" 2>/dev/null || echo "0")
+if grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT.*localhost' "$profile" 2>/dev/null; then
+    stale_lines=1
+else
+    stale_lines=0
+fi
 if [[ "$stale_lines" -gt 0 ]]; then
     warn "Found stale localhost OTel endpoint in $profile — may override managed config"
 fi
