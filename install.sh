@@ -179,20 +179,32 @@ write_config() {
     local profile_file="$1"
     local resource_attrs="service.namespace=attri-internal,developer.name=${DEV_NAME},developer.email=${DEV_EMAIL},team.id=${TEAM_ID},max.plan.id=${PLAN_ID}"
 
-    cat >> "$profile_file" << EOF
-
-${MARKER_START}
-# Claude Code OTel telemetry — per-developer identity for Attri.ai
-# Re-run this installer to update. Do not edit manually.
-export CLAUDE_CODE_ENABLE_TELEMETRY=1
-export OTEL_METRICS_EXPORTER=otlp
-export OTEL_LOGS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-export OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_ENDPOINT}"
-export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta
-export OTEL_RESOURCE_ATTRIBUTES="${resource_attrs}"
-${MARKER_END}
-EOF
+    {
+        echo ""
+        echo "${MARKER_START}"
+        echo "# Claude Code OTel telemetry — per-developer identity for Attri.ai"
+        echo "# Re-run this installer to update. Do not edit manually."
+        echo "export CLAUDE_CODE_ENABLE_TELEMETRY=1"
+        echo "export OTEL_METRICS_EXPORTER=otlp"
+        echo "export OTEL_LOGS_EXPORTER=otlp"
+        echo "export OTEL_EXPORTER_OTLP_PROTOCOL=grpc"
+        echo "export OTEL_EXPORTER_OTLP_ENDPOINT=\"${OTEL_ENDPOINT}\""
+        echo "export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta"
+        echo "export _CLAUDE_OTEL_BASE_ATTRS=\"${resource_attrs}\""
+        echo 'export OTEL_RESOURCE_ATTRIBUTES="${_CLAUDE_OTEL_BASE_ATTRS}"'
+        echo ""
+        echo "# Wrapper: injects project.cwd and project.name into every claude session"
+        echo 'claude() {'
+        echo '    local project_cwd="$PWD"'
+        echo '    local project_name'
+        echo '    project_name=$(basename "$PWD")'
+        echo '    project_cwd=$(echo "$project_cwd" | tr '"'"' ,='"'"' '"'"'___'"'"')'
+        echo '    project_name=$(echo "$project_name" | tr '"'"' ,='"'"' '"'"'___'"'"')'
+        echo '    OTEL_RESOURCE_ATTRIBUTES="${_CLAUDE_OTEL_BASE_ATTRS},project.cwd=${project_cwd},project.name=${project_name}" \'
+        echo '        command claude "$@"'
+        echo '}'
+        echo "${MARKER_END}"
+    } >> "$profile_file"
 
     # Export into current shell for verification phase
     export CLAUDE_CODE_ENABLE_TELEMETRY=1
