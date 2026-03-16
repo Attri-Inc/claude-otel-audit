@@ -177,7 +177,7 @@ remove_stale_otel_lines() {
 
 write_config() {
     local profile_file="$1"
-    local resource_attrs="developer.name=${DEV_NAME},developer.email=${DEV_EMAIL},team.id=${TEAM_ID},max.plan.id=${PLAN_ID}"
+    local resource_attrs="service.namespace=attri-internal,developer.name=${DEV_NAME},developer.email=${DEV_EMAIL},team.id=${TEAM_ID},max.plan.id=${PLAN_ID}"
 
     cat >> "$profile_file" << EOF
 
@@ -275,7 +275,7 @@ run_verify() {
     if [[ -z "$attrs" ]]; then
         fail "OTEL_RESOURCE_ATTRIBUTES is empty — no developer identity!"
     else
-        for key in "developer.name" "developer.email" "team.id" "max.plan.id"; do
+        for key in "service.namespace" "developer.name" "developer.email" "team.id" "max.plan.id"; do
             if echo "$attrs" | grep -q "${key}="; then
                 local value
                 value=$(echo "$attrs" | tr ',' '\n' | grep "^${key}=" | cut -d= -f2)
