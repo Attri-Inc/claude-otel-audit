@@ -4,7 +4,7 @@ Track individual developer Claude Code usage across shared Max plans using OpenT
 
 ## Problem
 
-30 developers share 6-7 Max plans. Without per-developer identity, all telemetry looks like the same user. This toolkit adds `developer.name`, `developer.email`, `team.id`, and `max.plan.id` to every metric and log event via `OTEL_RESOURCE_ATTRIBUTES`.
+30 developers share 6-7 Max plans. Without per-developer identity, all telemetry looks like the same user. This toolkit adds `service.namespace`, `developer.name`, `developer.email`, `team.id`, and `max.plan.id` to every metric and log event via `OTEL_RESOURCE_ATTRIBUTES`.
 
 ## Quick Start (One Command)
 
@@ -12,48 +12,78 @@ Track individual developer Claude Code usage across shared Max plans using OpenT
 curl -sL https://raw.githubusercontent.com/Attri-Inc/claude-otel-audit/main/install.sh | bash
 ```
 
-That's it. The script will ask for your name, team, and plan number, then configure everything and verify it works.
+The script asks for your name, team, and plan number, then configures everything, verifies it works, and shows next steps. Safe to re-run anytime.
 
-### Alternative: Clone and Run
-
-```bash
-git clone https://github.com/Attri-Inc/claude-otel-audit.git && cd claude-otel-audit
-./install.sh
-```
-
-## What setup-claude-otel.sh Does
+## What It Does
 
 1. Detects your shell (zsh/bash) and profile file
 2. Auto-reads your name/email from `git config`
 3. Asks for your team and Max plan number
-4. Removes any existing OTel config (idempotent — safe to re-run)
+4. Removes any existing OTel config (idempotent)
 5. Appends a managed config block to your shell profile:
 
 ```bash
 # >>> claude-otel-audit >>>
-# Claude Code OTel telemetry — per-developer identity for Attri.ai
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_METRICS_EXPORTER=otlp
 export OTEL_LOGS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.attri.live:4317
 export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta
-export OTEL_RESOURCE_ATTRIBUTES="developer.name=yourname,developer.email=you@attri.ai,team.id=your-team,max.plan.id=plan-N"
+export OTEL_RESOURCE_ATTRIBUTES="service.namespace=attri-internal,developer.name=yourname,developer.email=you@attri.ai,team.id=your-team,max.plan.id=plan-N"
 # <<< claude-otel-audit <<<
 ```
 
-## Re-running Setup
-
-Just run `./setup-claude-otel.sh` again. It removes the old block and writes a fresh one. Your other shell config is untouched.
+6. Runs a 13-point verification (env vars, connectivity, shell profile, Claude Code install)
 
 ## SigNoz Dashboard
 
-Import `dashboard-claude-audit.json` into SigNoz:
+The **"Claude Code — Developer Audit"** dashboard is pre-configured at [signoz.attri.live](https://signoz.attri.live) with 21 panels:
 
-1. Go to https://signoz.attri.live
-2. Dashboards -> New Dashboard -> Import JSON
-3. Select `dashboard-claude-audit.json`
-4. Dashboard shows: cost, tokens, sessions, active time, LOC, commits, PRs — all per developer
+### Overview (KPI Cards)
+- Total Cost (USD)
+- Total Tokens
+- Total Sessions
+- Active Time
+
+### Per-Developer Breakdown
+- Cost per Developer (USD) — ranked bar chart
+- Tokens per Developer — ranked bar chart
+- Sessions per Developer — ranked bar chart
+- Token Type Breakdown — input/output/cacheRead/cacheCreation stacked by developer
+
+### Usage Patterns & Misuse Detection
+- Cost Over Time (Spike Detection) — time series per developer
+- Sessions Over Time (Parallel Usage Detection) — detect concurrent sessions
+- Cost by Developer x Model — detect expensive model overuse
+- Code Edit Decisions (Coding vs Chatting) — are devs actually coding or just chatting?
+
+### Plan & Team Distribution
+- Cost by Max Plan — pie chart across 7 plans
+- Cost by Team — pie chart across teams
+- Cost by Model — which Claude models are used
+
+### Developer Activity & Productivity
+- Developer Leaderboard — table with cost, tokens, sessions, LOC, commits, PRs per developer (includes team + plan columns)
+- Lines of Code Over Time — productivity trend
+- Commits & PRs Over Time — delivery trend
+
+### Logs & Session Activity
+- Recent Developer Activity (Logs) — live log stream showing developer name, event body, session ID
+- Activity Volume Over Time — log event count per developer (detect off-hours usage)
+- API Errors per Developer — error pattern detection
+
+## Resource Attributes
+
+All telemetry carries these attributes for filtering and grouping:
+
+| Attribute | Example | Purpose |
+|-----------|---------|---------|
+| `service.namespace` | `attri-internal` | Groups all Claude Code telemetry under one namespace |
+| `developer.name` | `Sattyam_Jain` | Individual developer identity |
+| `developer.email` | `sattyam@attri.ai` | Developer email |
+| `team.id` | `ai-architecture` | Team grouping |
+| `max.plan.id` | `plan-1` | Which shared Max plan account |
 
 ## Metrics Tracked
 
@@ -68,27 +98,39 @@ Import `dashboard-claude-audit.json` into SigNoz:
 | `claude_code.pull_request.count` | PRs created with Claude |
 | `claude_code.code_edit_tool.decision` | Code edit tool decisions |
 
+## Log Events Tracked
+
+| Event | What It Captures |
+|-------|------------------|
+| `claude_code.user_prompt` | Developer prompts (length, session ID) |
+| `claude_code.tool_result` | Tool usage patterns |
+| `claude_code.api_request` | API calls made |
+| `claude_code.api_error` | Errors and failures |
+| `claude_code.tool_decision` | Tool selection decisions |
+
 ## Troubleshooting
 
-**verify-claude-otel.sh shows FAIL for endpoint connectivity**
-- Check you're on VPN / can reach `otel.attri.live`
-- Test: `nc -zv otel.attri.live 4317`
+**Verification fails for endpoint connectivity**
+- Check you can reach `otel.attri.live`: `nc -zv otel.attri.live 4317`
+- If on VPN, ensure the route to `20.124.117.247` is allowed
 
 **Still seeing localhost:4317 in env**
-- You may have old config lines outside the managed block
-- Re-run `./setup-claude-otel.sh` — it cleans up stale lines too
+- Re-run the install script — it cleans up stale lines automatically
+- Open a new terminal after running
 
-**Metrics not showing up in SigNoz**
-- Open a new terminal after setup (env vars need a fresh shell)
-- Restart Claude Code session
-- Run a few prompts, then check SigNoz after 1-2 minutes
+**Dashboard shows "No Data" or errors**
+- Open a **new terminal** after setup (env vars need a fresh shell)
+- Start a Claude Code session and run a few prompts
+- Check SigNoz after 1-2 minutes — data appears on the next metrics export interval
 
 **git config not set**
-- Run: `git config --global user.name "Your Name"`
-- Run: `git config --global user.email "you@attri.ai"`
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@attri.ai"
+```
 
 ## Prerequisites
 
 - Claude Code CLI installed
 - `git config --global user.name` and `user.email` set
-- Network access to `otel.attri.live:4317`
+- Network access to `otel.attri.live:4317` (Azure VM at `20.124.117.247`)
