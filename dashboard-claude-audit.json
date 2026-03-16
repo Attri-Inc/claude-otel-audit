@@ -1,0 +1,504 @@
+{
+  "title": "Claude Code — Per-Developer Audit (Attri.ai)",
+  "description": "Per-developer usage tracking for Claude Code across shared Max plans. Metrics grouped by developer.name from OTEL_RESOURCE_ATTRIBUTES.",
+  "tags": ["claude-code", "otel", "audit", "attri"],
+  "layout": [
+    { "i": "cost-per-dev", "x": 0, "y": 0, "w": 6, "h": 3 },
+    { "i": "tokens-per-dev", "x": 6, "y": 0, "w": 6, "h": 3 },
+    { "i": "sessions-per-dev", "x": 0, "y": 3, "w": 6, "h": 3 },
+    { "i": "active-time-per-dev", "x": 6, "y": 3, "w": 6, "h": 3 },
+    { "i": "loc-per-dev", "x": 0, "y": 6, "w": 4, "h": 3 },
+    { "i": "commits-per-dev", "x": 4, "y": 6, "w": 4, "h": 3 },
+    { "i": "prs-per-dev", "x": 8, "y": 6, "w": 4, "h": 3 },
+    { "i": "cost-by-plan", "x": 0, "y": 9, "w": 4, "h": 3 },
+    { "i": "cost-by-team", "x": 4, "y": 9, "w": 4, "h": 3 },
+    { "i": "cost-by-model", "x": 8, "y": 9, "w": 4, "h": 3 },
+    { "i": "tokens-by-type", "x": 0, "y": 12, "w": 6, "h": 3 },
+    { "i": "edit-decisions", "x": 6, "y": 12, "w": 6, "h": 3 }
+  ],
+  "widgets": [
+    {
+      "id": "cost-per-dev",
+      "title": "Cost per Developer (USD)",
+      "description": "Total Claude Code cost grouped by developer",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.cost.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "tokens-per-dev",
+      "title": "Token Usage per Developer",
+      "description": "Total tokens (input + output) grouped by developer",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.token.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "sessions-per-dev",
+      "title": "Sessions per Developer",
+      "description": "Number of Claude Code sessions by developer",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.session.count",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "active-time-per-dev",
+      "title": "Active Time per Developer (seconds)",
+      "description": "Total active coding time with Claude Code by developer",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.active_time.total",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "loc-per-dev",
+      "title": "Lines of Code per Developer",
+      "description": "Lines of code changed with Claude Code assistance",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.lines_of_code.count",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "commits-per-dev",
+      "title": "Commits per Developer",
+      "description": "Git commits made with Claude Code assistance",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.commit.count",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "prs-per-dev",
+      "title": "Pull Requests per Developer",
+      "description": "PRs created with Claude Code assistance",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.pull_request.count",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "cost-by-plan",
+      "title": "Cost by Max Plan",
+      "description": "Total cost grouped by Max plan account",
+      "panelTypes": "pie",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.cost.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "max.plan.id",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      }
+    },
+    {
+      "id": "cost-by-team",
+      "title": "Cost by Team",
+      "description": "Total cost grouped by team",
+      "panelTypes": "pie",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.cost.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "team.id",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      }
+    },
+    {
+      "id": "cost-by-model",
+      "title": "Cost by Model",
+      "description": "Total cost grouped by Claude model used",
+      "panelTypes": "pie",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.cost.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "model",
+                  "dataType": "string",
+                  "type": "tag",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      }
+    },
+    {
+      "id": "tokens-by-type",
+      "title": "Token Usage by Type per Developer",
+      "description": "Breakdown: input, output, cacheRead, cacheCreation tokens by developer",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.token.usage",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                },
+                {
+                  "key": "type",
+                  "dataType": "string",
+                  "type": "tag",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    },
+    {
+      "id": "edit-decisions",
+      "title": "Code Edit Decisions per Developer",
+      "description": "How many code edit tool decisions each developer triggered",
+      "panelTypes": "bar",
+      "query": {
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateOperator": "sum",
+              "aggregateAttribute": {
+                "key": "claude_code.code_edit_tool.decision",
+                "type": "Sum",
+                "dataType": "float64",
+                "isMonotonic": true
+              },
+              "groupBy": [
+                {
+                  "key": "developer.name",
+                  "dataType": "string",
+                  "type": "resource",
+                  "isColumn": false
+                }
+              ],
+              "expression": "A",
+              "disabled": false,
+              "timeAggregation": "sum",
+              "spaceAggregation": "sum"
+            }
+          ],
+          "queryFormulas": []
+        }
+      },
+      "softMin": 0
+    }
+  ],
+  "variables": {
+    "developer": {
+      "type": "QUERY",
+      "name": "developer",
+      "description": "Filter by developer name",
+      "queryValue": "SELECT DISTINCT JSONExtractString(resources_string, 'developer.name') as developer FROM signoz_metrics.distributed_samples_v4 WHERE metric_name = 'claude_code.session.count' AND developer != '' ORDER BY developer",
+      "customValue": "",
+      "multiSelect": true,
+      "showALLOption": true,
+      "sort": "ASC",
+      "selectedValue": "ALL"
+    },
+    "team": {
+      "type": "QUERY",
+      "name": "team",
+      "description": "Filter by team",
+      "queryValue": "SELECT DISTINCT JSONExtractString(resources_string, 'team.id') as team FROM signoz_metrics.distributed_samples_v4 WHERE metric_name = 'claude_code.session.count' AND team != '' ORDER BY team",
+      "customValue": "",
+      "multiSelect": true,
+      "showALLOption": true,
+      "sort": "ASC",
+      "selectedValue": "ALL"
+    }
+  }
+}
